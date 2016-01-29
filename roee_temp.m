@@ -16,7 +16,7 @@ p.queryn = @(n) randsample(q_vals, n, true, p.dist);
 I = 0;
 
 for i = 1:20
-    I = I + test_identity( p, q, 0.4 );
+    I = I + test_identity( p, q, 0.3 );
 end
 
 Small_I = I / 20;
