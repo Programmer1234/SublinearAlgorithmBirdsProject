@@ -1,8 +1,12 @@
 %clear, clc, close all
-function [s] = get_stft(wav_data, fs)
+function [s, s_sum] = get_stft(wav_data, fs)
 % load a .wav file
 %[x, fs] = audioread(wav);     % get the samples of the .wav file
-x = wav_data;
+if size(wav_data,1) > 1
+    x = wav_data;
+else
+    x = wav_data';
+end
 x = x(:, 1);                        % get the first channel
 xmax = max(abs(x));                 % find the maximum abs values
 x = x/xmax;                         % scalling the signal
@@ -32,7 +36,12 @@ end
 
 s = sum(s,2);
 s = s(1:400);   % Low-Pass filter
-s = s / sum(s);
+s_sum = sum(s);
+
+if s_sum > 0
+    s = s / sum(s);
+end
+
 
 % figure;
 % plot(abs(fft(x)));
