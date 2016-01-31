@@ -1,10 +1,12 @@
-function [ I ] = test_identity( p, q, epsilon )
+function [ I, p_est, sample_count] = test_identity( p, q, epsilon, ex_p_est, ex_sample_count, stage_1_const, stage_2_const)
 
 % q is of format q(:,1) = dist, q(:,2) = vals (domain)
 % p is a struct that contains a query func
 
-stage_1_const = 20;
-stage_2_const = 0.5;
+if nargin < 7
+    stage_1_const = 12;
+    stage_2_const = 0.5;
+end
 
 [~,sortperm] = sort(q(:,2));
 q = q(sortperm, :);
@@ -13,26 +15,32 @@ q_dist = q(:,1);
 q_vals = q(:,2);
 
 n = length(q_vals);
-sample_count = round(stage_1_const * sqrt(n) * log(n) * epsilon^(-2));
 [ k, buckets ] = bucket( q_dist, epsilon/sqrt(2));
 
-if isfield(p, 'queryn')
-    p_samples = p.queryn(sample_count);
-else
-    p_samples = zeros(sample_count, 1);
+if nargin < 5
+    sample_count = round(stage_1_const * sqrt(n) * log(n) * epsilon^(-2));
 
-    for i=1:sample_count
-        p_samples = p.query();
+    if isfield(p, 'queryn')
+        p_samples = p.queryn(sample_count);
+    else
+        p_samples = zeros(sample_count, 1);
+
+        for i=1:sample_count
+            p_samples = p.query();
+        end
     end
+    
+    p_est = [...
+        histc(p_samples, q_vals) / sample_count ...
+        q_vals];
+else
+    p_est = ex_p_est;
+    sample_count = ex_sample_count;
 end
-
-p_est = [...
-    histc(p_samples, q_vals) / sample_count ...
-    q_vals];
 
 coarse_dist = 0;
 
-for i=2:k
+for i=k:-1:2
     rest_q_L1 = sum(q_dist(buckets{i}));
 
     if rest_q_L1 < (epsilon / k)

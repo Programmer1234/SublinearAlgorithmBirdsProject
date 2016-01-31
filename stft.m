@@ -56,5 +56,20 @@ end
 % calculate the time and frequency vectors
 t = (wlen/2:h:wlen/2+(coln-1)*h)/fs;
 f = (0:rown-1)*fs/nfft;
+%stft = stft(1:400,:);   % Low-Pass filter
+
+% define the coherent amplification of the window
+K = sum(win)/wlen;
+
+% take the amplitude of fft(x) and scale it, so not to be a
+% function of the length of the window and its coherent amplification
+stft = abs(stft)/wlen/K;
+
+% correction of the DC & Nyquist component
+if rem(nfft, 2)                     % odd nfft excludes Nyquist point
+    stft(2:end, :) = stft(2:end, :).*2;
+else                                % even nfft includes Nyquist point
+    stft(2:end-1, :) = stft(2:end-1, :).*2;
+end
 
 end
